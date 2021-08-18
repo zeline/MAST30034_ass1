@@ -8,22 +8,80 @@ nsrcs = 6
 #Q1.1
 #X = standardized generated dataset
 AV = c(0, 20, 0, 0, 0, 0) #onset arrival vector
-IV = c(30, 45, 60, 40, 40, 40) #increment vector
+IV = c(30, 45, 60, 40, 40, 40) #increment vector, the period
 DUR_ONES = c(15, 20, 25, 15, 20, 25) #duration of ones
+DUR_NEG = IV - DUR_ONES #the other section what makes up the period (IV)
+#DUR_NEG
 
-TC1 = matrix(c(rep(1, DUR_ONES[1]), AV[1]:IV[1]:N-20), nrow = 240, ncol = 6, byrow = FALSE)
-TC2 = matrix(c(rep(1, DUR_ONES[2]),AV[2]:IV[2]:N-20), nrow = 240, ncol = 6, byrow = FALSE)
-TC3 = matrix(c(rep(1, DUR_ONES[3]),AV[3]:IV[3]:N-20), nrow = 240, ncol = 6, byrow = FALSE)
-TC4 = matrix(c(rep(1, DUR_ONES[4]),AV[4]:IV[4]:N-20), nrow = 240, ncol = 6, byrow = FALSE)
-TC5 = matrix(c(rep(1, DUR_ONES[5]),AV[5]:IV[5]:N-20), nrow = 240, ncol = 6, byrow = FALSE)
-TC6 = matrix(c(rep(1, DUR_ONES[6]),AV[6]:IV[6]:N-20), nrow = 240, ncol = 6, byrow = FALSE)
+#col 1
+'
+start = c(rep(NA, AV[1]))
+period = c(rep(1, DUR_ONES[1]), rep(-1, DUR_NEG[1]))
+n = length(c(start, period))
+branch = rep_len(period, N-n)
+tc1 = c(start, period, branch)
+tc1
+'
+TC <- matrix(data = NA, nrow = 240, ncol = 6)
+
+  for(i in 1:6){
+   
+    start = c(rep(NA, AV[i]))
+    period = c(rep(1, DUR_ONES[i]), rep(-1, DUR_NEG[i]))
+    n = length(c(start, period))
+    branch = rep_len(period, N-n)
+    vec = c(start, period, branch)
+    TC[, i] <- vec
+
+  }
+TC[,1]
+matplot(TC[,1], type = 'l', xlab = 'Time', main = 'Time Course 1')
+
+#now we need to standardise each column
+scaled_TC <- matrix(data = NA, nrow = 240, ncol = 6)
+for(i in 1:6){
+  scaled_col = (TC[,i] - mean(TC[,i], na.rm = TRUE)) / sd(TC[,i], na.rm = TRUE)
+  scaled_TC[,i] = scaled_col
+}
+apply(scaled_TC, 2, mean, na.rm=TRUE)
+apply(scaled_TC, 2, sd, na.rm=TRUE)
+#now we make the subplots 
+scaled_TC
+par(mfrow=c(2,3))
+matplot(scaled_TC[,1], type = 'l', xlab = 'Time', ylab = 'Source Value', 
+        main = 'Time Course 1')
+matplot(scaled_TC[,2], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 2')
+matplot(scaled_TC[,3], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 3')
+matplot(scaled_TC[,4], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 4')
+matplot(scaled_TC[,5], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 5')
+matplot(scaled_TC[,6], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 6')
+
+" this totally ruined the proportions, but looks better as pdf"
+par(mfrow=c(3,2))
+matplot(scaled_TC[,1], type = 'l', xlab = 'Time', ylab = 'Source Value', 
+        main = 'Time Course 1')
+matplot(scaled_TC[,2], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 2')
+matplot(scaled_TC[,3], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 3')
+matplot(scaled_TC[,4], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 4')
+matplot(scaled_TC[,5], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 5')
+matplot(scaled_TC[,6], type = 'l', xlab = 'Time', ylab = 'Source Value',
+        main = 'Time Course 6')
 
 'standardise instead of normalise as normalising means every value
 takes a value between [0,1] * a scalar. it is minmax scaling.
 standardising is making the data fit a standard normal distribution
 (assumes it is already following a normal distribution)
 '
-TC1
+
 #R code for LASSO Regresison
   #step <= 1/(norm(TC%*%t(TC))*1.1) 
   #thr <= rho*N*step
