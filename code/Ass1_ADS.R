@@ -11,17 +11,8 @@ AV = c(0, 20, 0, 0, 0, 0) #onset arrival vector
 IV = c(30, 45, 60, 40, 40, 40) #increment vector, the period
 DUR_ONES = c(15, 20, 25, 15, 20, 25) #duration of ones
 DUR_NEG = IV - DUR_ONES #the other section what makes up the period (IV)
-#DUR_NEG
 
-#col 1
-'
-start = c(rep(NA, AV[1]))
-period = c(rep(1, DUR_ONES[1]), rep(-1, DUR_NEG[1]))
-n = length(c(start, period))
-branch = rep_len(period, N-n)
-tc1 = c(start, period, branch)
-tc1
-'
+#Q1.1
 TC <- matrix(data = NA, nrow = 240, ncol = 6)
 
   for(i in 1:6){
@@ -45,6 +36,7 @@ for(i in 1:6){
 }
 apply(scaled_TC, 2, mean, na.rm=TRUE)
 apply(scaled_TC, 2, sd, na.rm=TRUE)
+
 #now we make the subplots 
 scaled_TC
 par(mfrow=c(2,3))
@@ -81,6 +73,23 @@ takes a value between [0,1] * a scalar. it is minmax scaling.
 standardising is making the data fit a standard normal distribution
 (assumes it is already following a normal distribution)
 '
+#1.2
+corr_matrix = rcorr(scaled_TC, type= 'spearman')$r
+#using spearman as the values are not normally distributed
+min(corr_matrix)
+max(corr_matrix)
+#since the heatmap will be from [-0.07, 1], there isnt any strong negative
+#correlation so I will focus on only displaying the strong positive correlations
+colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(10)
+heatmap = heatmap(x = corr_matrix, col = colour, symm = TRUE, 
+  main = 'Correlation Between TC Vectors', Colv = NA, Rowv = NA)
+legend(title = 'Scale',x = "right", 
+       legend = c("0.0", "0.6", "1.0"),
+       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3) )
+
+#1.3
+
+
 
 #R code for LASSO Regresison
   #step <= 1/(norm(TC%*%t(TC))*1.1) 
