@@ -36,9 +36,11 @@ for(i in 1:6){
 }
 apply(scaled_TC, 2, mean, na.rm=TRUE)
 apply(scaled_TC, 2, sd, na.rm=TRUE)
+#exporting the matrix
+#write.table(scaled_TC, file = "~/scaled_TC.csv") #NOT WORKING???
 
 #now we make the subplots 
-scaled_TC
+
 par(mfrow=c(2,3))
 matplot(scaled_TC[,1], type = 'l', xlab = 'Time', ylab = 'Source Value', 
         main = 'Time Course 1')
@@ -85,11 +87,136 @@ heatmap = heatmap(x = corr_matrix, col = colour, symm = TRUE,
   main = 'Correlation Between TC Vectors', Colv = NA, Rowv = NA)
 legend(title = 'Scale',x = "right", 
        legend = c("0.0", "0.6", "1.0"),
-       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3) )
+       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3),
+       xpd=TRUE)
+
 
 #1.3
+sm1 = matrix(0, 21, 21)
+sm1[2:6, 2:6] <- 1
+
+sm2 = matrix(0, 21, 21)
+sm2[15:19, 2:6] <- 1
+
+sm3 = matrix(0, 21, 21)
+sm3[2:6, 8:13] <- 1
+
+sm4 = matrix(0, 21, 21)
+sm4[15:19, 8:13] <- 1
+
+sm5 = matrix(0, 21, 21)
+sm5[2:6, 15:19] <- 1
+
+sm6 = matrix(0, 21, 21)
+sm6[15:19, 15:19] <- 1
 
 
+tmpSM <- array(c(sm1, sm2, sm3, sm4, sm5, sm6), dim = c(21, 21, 6))
+
+tmpSM[,,1]
+typeof(tmpSM)
+sm1
+#plotting
+" if (!requireNamespace('BiocManager', quietly = TRUE))
+  install.packages('BiocManager')
+
+BiocManager::install('ComplexHeatmap')
+install.packages('ComplexHeatmap')
+
+legend(title = 'Scale',x = 'right', 
+       legend = c('0.0', '1.0'),
+       fill = colorRampPalette(c('lightblue', 'red'))(2) )
+install.packages('nat') "
+
+par(mfrow=c(3,2))
+new_col = colorRampPalette(c("lightblue", 'yellow'))(2)
+h1 = heatmap(x = tmpSM[,,1], col = colour, symm = TRUE, 
+        main = 'Heatmap SM 1', Colv = NA, Rowv = NA)
+h2 = heatmap(x = tmpSM[,,2], col = colour, symm = TRUE, 
+        main = 'Heatmap SM 2', Colv = NA, Rowv = NA)
+h3 = heatmap(x = tmpSM[,,3], col = colour, symm = TRUE, 
+        main = 'Heatmap SM 3', Colv = NA, Rowv = NA)
+h4 = heatmap(x = tmpSM[,,4], col = colour, symm = TRUE, 
+        main = 'Heatmap SM 4', Colv = NA, Rowv = NA)
+h5 = heatmap(x = tmpSM[,,5], col = colour, symm = TRUE, 
+        main = 'Heatmap SM 5', Colv = NA, Rowv = NA)
+h6 = heatmap(x = tmpSM[,,6], col = colour, symm = TRUE, 
+        main = 'Heatmap SM 6', Colv = NA, Rowv = NA)
+
+h3_ = heatmap(x = tmpSM[,,3], col = colour, symm = TRUE, 
+             main = 'Heatmap SM 3', Colv = NA, Rowv = NA)
+legend(x = "bottomright", 
+       legend = c("0.0", "1.0"),
+       fill = new_col, xpd=TRUE, cex = 1.5)
+
+h6_ = heatmap(x = tmpSM[,,6], col = colour, symm = TRUE, 
+              main = 'Heatmap SM 6', Colv = NA, Rowv = NA)
+legend(x = "bottomright", 
+       legend = c("0.0", "1.0"),
+       fill = new_col, xpd=TRUE, cex = 1.5)
+#make a matrix SM
+SM <- matrix(data = NA, nrow = 441, ncol = 6)
+for(i in 1:6){
+  
+  col <- as.vector(tmpSM[,, i])
+  SM[, i] <- col
+}
+
+#now check if these are independent
+SM
+corr_matrix2 = rcorr(SM, type= 'spearman')$r
+corr_matrix2
+
+colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(20)
+heatmap = heatmap(x = corr_matrix2, col = colour, symm = TRUE, 
+                  main = 'Correlation Between SM Vectors', Colv = NA, Rowv = NA)
+legend(title = 'Scale',x = "right", 
+       legend = c("0.0", "0.6", "1.0"),
+       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3),
+       xpd=TRUE, cex = 1.5)
+
+#1.4 - generate white noise
+#scaled_TC
+tnoise = rnorm(1440, mean = 0, sd = 0.25)
+TC_noise <- matrix(data = tnoise, nrow = 240, ncol = 6)
+corr_matrix_tn = rcorr(TC_noise, type= 'spearman')$r
+
+colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(20)
+heatmap = heatmap(x = corr_matrix_tn, col = colour, symm = TRUE, 
+                  main = 'Correlation Between TC Noise', Colv = NA, Rowv = NA)
+legend(title = 'Scale',x = "right", 
+       legend = c("0.0", "0.6", "1.0"),
+       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3),
+       xpd=TRUE, cex = 1.5)
+
+#SM
+snoise = rnorm(2646, mean = 0, sd = 0.015)
+SM_noise <- matrix(data = snoise, nrow = 441, ncol = 6)
+corr_matrix_sn = rcorr(SM_noise, type= 'spearman')$r
+
+colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(20)
+heatmap = heatmap(x = corr_matrix_sn, col = colour, symm = TRUE, 
+                  main = 'Correlation Between SM Noise', Colv = NA, Rowv = NA)
+legend(title = 'Scale',x = "right", 
+       legend = c("0.0", "0.6", "1.0"),
+       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3),
+       xpd=TRUE, cex = 1.5)
+
+#histograms of noise dist
+#sm noise
+par(mfrow=c(1,1))
+hist(snoise)
+hist(tnoise)
+#noise product
+trans_SMN = t(SM_noise)
+productM = TC_noise %*% trans_SMN
+corr_matrix_Xn = rcorr(productM, type= 'pearson')$r
+min(corr_matrix_Xn)
+
+colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(20)
+heatmap = heatmap(x = corr_matrix_Xn, col = colour, symm = TRUE, 
+                  main = 'Correlation Between Noise Product Variables', 
+                  Colv = NA, Rowv = NA)
 
 #R code for LASSO Regresison
   #step <= 1/(norm(TC%*%t(TC))*1.1) 
