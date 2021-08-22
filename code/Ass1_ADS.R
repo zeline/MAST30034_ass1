@@ -217,6 +217,50 @@ colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(20)
 heatmap = heatmap(x = corr_matrix_Xn, col = colour, symm = TRUE, 
                   main = 'Correlation Between Noise Product Variables', 
                   Colv = NA, Rowv = NA)
+library(Matrix)
+?Matrix
+#1.5
+A = (TC + TC_noise)
+B = (SM + SM_noise)
+BT = t(B)
+dim(A)
+
+colSums(is.na(AA))
+AA[,2]
+#we need to get rid of these null values now, so we will mean impute
+#we set the mean as 0
+A <- replace(A, is.na(A), 0)
+colSums(is.na(A))
+#now we can do the cross product
+X = A %*% BT
+
+matplot(X[,1], type = 'l', xlab = 'Time', main = 'X1')
+
+#gotta use gg plot to plot 100 lines
+#https://stackoverflow.com/questions/27826666/plotting-1000-lines-with-ggplot2
+#ggplot(data = X, aes(x=x, y=val)) + geom_line(aes(colour=variable))
+Xdf = as.data.frame(X)
+length(Xdf)
+Xdf[1]
+#random selection of 100 columns
+numbers = sample(1:411, 100, replace=F)
+numbers = sort(numbers)
+df2 = Xdf[c(numbers)]
+df2[1]
+dfex <- data.frame(time = 1:240, df2)
+dfex <- melt(dfex ,  id.vars = 'time', variable.name = 'series')
+
+dfex
+
+ggplot(dfex, aes(time, value, group = series)) + theme_bw() + theme(panel.grid=element_blank()) + geom_line(size=0.2, alpha=0.1)
+X
+variances = (colVars(X))
+variances
+plot(variances, type = "p")
+dim(X)
+X_scaled = scale(X, center = TRUE, scale = TRUE)
+
+X_new = matrix(X_scaled, nrow = 240, ncol = 441)
 
 #R code for LASSO Regresison
   #step <= 1/(norm(TC%*%t(TC))*1.1) 
