@@ -258,10 +258,56 @@ variances = (colVars(X))
 variances
 plot(variances, type = "p")
 dim(X)
-X_scaled = scale(X, center = TRUE, scale = TRUE)
 
+#X_scaled <- matrix(data = NA, nrow = 240, ncol = 441)
+#for(i in 1:6){
+#  scaled_col = (X[,i] - mean(X[,i], na.rm = TRUE)) / sd(X[,i], na.rm = TRUE)
+#  X_scaled[,i] = scaled_col
+#} this resulted in many nulls due to the tiny numbers, will use a package instead
+X_scaled = scale(X, center = TRUE, scale = TRUE)
 X_new = matrix(X_scaled, nrow = 240, ncol = 441)
 
+#2.1
+TC #either replace nan with 0 or mean. mean = -0.09 so for simplicity i will
+#do mean replacement as they are close in value
+TC[,2][is.na(TC[,2])] <- mean(TC[,2], na.rm = TRUE)
+solve(t(TC)%*%TC)
+
+A_lsr = solve(t(TC)%*%TC) %*% t(TC) %*% X_new #(estimate)
+
+D_lsr = X_new %*% t(A_lsr)
+
+c(dim(A_lsr), dim(D_lsr)) #A_lsr is spatial and D is temporal
+
+A1 = matrix(A_lsr[1,], nrow = 21, ncol = 21)
+A1
+
+colour = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(20)
+
+par(mfrow=c(1,1))
+heatmap_a1 = heatmap(x = t(matrix(A_lsr[6,], nrow = 21, ncol = 21)),
+                     col = colour, symm = TRUE, main = 'Heatmap of A6', 
+                  Colv = NA, Rowv = NA)
+legend(title = 'Scale',x = "left", 
+       legend = c("0.0", "0.6", "1.0"),
+       fill = colorRampPalette(c("lightblue", "lightgreen", "yellow"))(3),
+       xpd=TRUE, cex = .75)
+
+plot(D_lsr[,6], type = 'l', main = 'D6 Course')
+
+
+#30th column of standardised X
+X_scaled[,30]
+D_lsr[,3]
+plot(x = D_lsr[,3], y = X_scaled[,30])
+plot(x = X_scaled[,30], y = D_lsr[,3])
+
+plot(X_scaled[,30])
+plot(D_lsr[,3])
+
+plot(X[,30])
+plot(x = X_scaled[,30], y = D_lsr[,4])
+plot(x =  D_lsr[,4], y = X_scaled[,30])
 #R code for LASSO Regresison
   #step <= 1/(norm(TC%*%t(TC))*1.1) 
   #thr <= rho*N*step
