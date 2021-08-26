@@ -308,15 +308,52 @@ plot(D_lsr[,3])
 plot(X[,30])
 plot(x = X_scaled[,30], y = D_lsr[,4])
 plot(x =  D_lsr[,4], y = X_scaled[,30])
+
+#2.2 Ridge Regression
+lambda = 0.5*V
+
+A_rr = solve(t(TC)%*%TC + lambda *diag(6)) %*% t(TC) %*% X_scaled
+D_rr = X_scaled %*% t(A_rr)
+  #now compare rr to lsr
+dim(D_rr)
+dim(D_lsr)
+dim(TC)
+
+c_tlsr = cor(D_lsr, TC)
+c_trr = cor(D_rr, TC)
+c(sum(c_trr), sum(c_tlsr))
+#12.36234 > 10.62412
+
+#now let lambda = 1000
+lambda2 = 1000
+A_rr2 = solve(t(TC)%*%TC + lambda2 *diag(6)) %*% t(TC) %*% X_scaled
+plot(A_rr2[1,])
+plot(A_lsr[1,])
+
+#2.3 LR
+rho = seq(0, 1, by = 0.05)
+
 #R code for LASSO Regresison
-  #step <= 1/(norm(TC%*%t(TC))*1.1) 
-  #thr <= rho*N*step
-  #Ao <= matrix(0,nsrcs ,1) A <= matrix (0 , nsrcs ,1)
-  #Alr <= matrix(0,nsrcs ,x1*x2)
-  #for (k in 1:(x1*x2)) {
-   # A<= Ao+step*(t(TC)%*%(X[,k]=(TC%*%Ao)))
-    #A <= (1/(1+thr))*(sign(A)*pmax(replicate(nsrcs ,0), abs(A) =thr))
-    #for ( i in 1:10)
-    #{
-    #}
-    #Alr [ , k]<=A } 
+step = 1/(norm(TC %*% t(TC)) * 1.1) 
+thr = rho*N*step
+Ao = matrix(0, nsrcs ,1) 
+A_ = matrix (0 , nsrcs ,1)
+A_lr = matrix(0, nsrcs, x1*x2)
+
+for (k in 1:(x1*x2)) {
+  A_ <- Ao+step*(t(TC) %*% (X[,k]-(TC%*%Ao)))
+  A_ <- (1/(1+thr[1])) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr[1]))
+  for ( i in 1:10)
+  {
+    Ao <- A_
+    A_ <- Ao+step*(t(TC)%*%(X[,k]-(TC%*%Ao)))
+    A_ <- (1/(1+thr[1]))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr[1]))
+  }
+  A_lr[ ,k] <- A_
+}
+#this is just for the first value of p, will have to do another loop to
+#go through the 21 values.
+
+#focus on just this one and write the code for calculating the MSE then we r in
+#business to make the loop
+A_lr
