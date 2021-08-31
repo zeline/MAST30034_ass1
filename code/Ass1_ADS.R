@@ -339,21 +339,27 @@ thr = rho*N*step
 Ao = matrix(0, nsrcs ,1) 
 A_ = matrix (0 , nsrcs ,1)
 A_lr = matrix(0, nsrcs, x1*x2)
+MSEs = matrix(0, 21, 1)
 
-for (k in 1:(x1*x2)) {
-  A_ <- Ao+step*(t(TC) %*% (X[,k]-(TC%*%Ao)))
-  A_ <- (1/(1+thr[1])) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr[1]))
-  for ( i in 1:10)
-  {
-    Ao <- A_
-    A_ <- Ao+step*(t(TC)%*%(X[,k]-(TC%*%Ao)))
-    A_ <- (1/(1+thr[1]))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr[1]))
+for(p in 1:21) {
+  for (k in 1:(x1*x2)) {
+    A_ <- Ao+step*(t(TC) %*% (X[,k]-(TC%*%Ao)))
+    A_ <- (1/(1+thr[p])) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr[p]))
+    for ( i in 1:10)
+    {
+      Ao <- A_
+      A_ <- Ao+step*(t(TC)%*%(X[,k]-(TC%*%Ao)))
+      A_ <- (1/(1+thr[p]))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr[p]))
+    }
+    A_lr[ ,k] <- A_
   }
-  A_lr[ ,k] <- A_
+  mse = sum(sum((X_scaled - D_lr %*% A_lr)^2))/(N*V)
+  MSEs[p,] <- mse
 }
-#this is just for the first value of p, will have to do another loop to
-#go through the 21 values.
+MSEs
+plot(y= MSEs, x= rho, main = "Average MSE Per Rho Value", xlab = "Rho Value")
 
-#focus on just this one and write the code for calculating the MSE then we r in
-#business to make the loop
-A_lr
+#increases at value = 1
+#minimum value is value = .95
+
+#2.4
