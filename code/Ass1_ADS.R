@@ -218,7 +218,7 @@ heatmap = heatmap(x = corr_matrix_Xn, col = colour, symm = TRUE,
                   main = 'Correlation Between Noise Product Variables', 
                   Colv = NA, Rowv = NA)
 library(Matrix)
-?Matrix
+
 #1.5
 A = (TC + TC_noise)
 B = (SM + SM_noise)
@@ -312,8 +312,8 @@ plot(x =  D_lsr[,4], y = X_scaled[,30])
 #2.2 Ridge Regression
 lambda = 0.5*V
 
-A_rr = solve(t(TC)%*%TC + lambda *diag(6)) %*% t(TC) %*% X_scaled
-D_rr = X_scaled %*% t(A_rr)
+A_rr = solve(t(TC)%*%TC + lambda *diag(6)) %*% t(TC) %*% X_new
+D_rr = X_new %*% t(A_rr)
   #now compare rr to lsr
 dim(D_rr)
 dim(D_lsr)
@@ -352,6 +352,7 @@ for(p in 1:21) {
       A_ <- (1/(1+thr[p]))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr[p]))
     }
     A_lr[ ,k] <- A_
+    D_lr = X_new %*% t(A_lr)
   }
   mse = sum(sum((X_scaled - D_lr %*% A_lr)^2))/(N*V)
   MSEs[p,] <- mse
@@ -360,6 +361,154 @@ MSEs
 plot(y= MSEs, x= rho, main = "Average MSE Per Rho Value", xlab = "Rho Value")
 
 #increases at value = 1
-#minimum value is value = .95
+#minimum value at index 14
 
 #2.4
+Ao = matrix(0, nsrcs ,1) 
+A_ = matrix (0 , nsrcs ,1)
+A_lr = matrix(0, nsrcs, x1*x2)
+rho_val = rho[14]
+thr = rho_val*N*step
+
+for (k in 1:(x1*x2)) {
+  A_ <- Ao+step*(t(TC) %*% (X_new[,k]-(TC%*%Ao)))
+  A_ <- (1/(1+thr)) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr))
+  for ( i in 1:10)
+  {
+    Ao <- A_
+    A_ <- Ao+step*(t(TC)%*%(X_new[,k]-(TC%*%Ao)))
+    A_ <- (1/(1+thr))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr))
+  }
+  A_lr[ ,k] <- A_
+  D_lr = X_new %*% t(A_lr)
+}
+
+#i TC and DRR
+C_trr = cor(TC, D_rr)
+#i SM and Arr
+C_srr = cor(SM, t(A_rr))
+#i TC Dlr
+C_tlr = cor(TC, D_lr)
+#i TC and DRR
+C_slr = cor(SM, t(A_lr))
+
+c(sum(C_tlr), sum(C_trr)) 
+c(sum(C_slr), sum(C_srr)) 
+
+#C_tlr > C_trr but it isnt
+
+#d estimates
+D_lr
+t(A_rr)
+
+#d's should look like this
+matplot(D_rr[,1], type = 'l', xlab = 'Time', main = 'Drr 1')
+matplot(D_rr[,2], type = 'l', xlab = 'Time', main = 'Drr 2')
+matplot(D_rr[,3], type = 'l', xlab = 'Time', main = 'Drr 3')
+matplot(D_rr[,4], type = 'l', xlab = 'Time', main = 'Drr 4')
+matplot(D_rr[,5], type = 'l', xlab = 'Time', main = 'Drr 5')
+matplot(D_rr[,6], type = 'l', xlab = 'Time', main = 'Drr 6')
+
+par(mfrow=c(3,2))
+
+matplot(D_lr[,1], type = 'l', xlab = 'Time', main = 'Dlr 1')
+matplot(D_lr[,2], type = 'l', xlab = 'Time', main = 'Dlr 2')
+matplot(D_lr[,3], type = 'l', xlab = 'Time', main = 'Dlr 3')
+matplot(D_lr[,4], type = 'l', xlab = 'Time', main = 'Dlr 4')
+matplot(D_lr[,5], type = 'l', xlab = 'Time', main = 'Dlr 5')
+matplot(D_lr[,6], type = 'l', xlab = 'Time', main = 'Dlr 6')
+#A's should look like this
+new_col = colorRampPalette(c("lightblue", 'yellow'))(2)
+
+arr1 = heatmap(x = matrix(data = A_rr[1,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+             main = 'Heatmap A_rr 1', Colv = NA, Rowv = NA)
+arr2 = heatmap(x = matrix(data = A_rr[2,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+        main = 'Heatmap A_rr 2', Colv = NA, Rowv = NA)
+arr3 = heatmap(x = matrix(data = A_rr[3,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+        main = 'Heatmap A_rr 3', Colv = NA, Rowv = NA)
+arr4 = heatmap(x = matrix(data = A_rr[4,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+        main = 'Heatmap A_rr 4', Colv = NA, Rowv = NA)
+arr5 = heatmap(x = matrix(data = A_rr[5,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+        main = 'Heatmap A_rr 5', Colv = NA, Rowv = NA)
+arr6 = heatmap(x = matrix(data = A_rr[6,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+        main = 'Heatmap A_rr 6', Colv = NA, Rowv = NA)
+
+alr1 = heatmap(x = matrix(data = A_lr[1,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_lr 1', Colv = NA, Rowv = NA)
+alr2 = heatmap(x = matrix(data = A_lr[2,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_lr 2', Colv = NA, Rowv = NA)
+alr3 = heatmap(x = matrix(data = A_lr[3,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_lr 3', Colv = NA, Rowv = NA)
+alr4 = heatmap(x = matrix(data = A_lr[4,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_lr 4', Colv = NA, Rowv = NA)
+alr5 = heatmap(x = matrix(data = A_lr[5,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_lr 5', Colv = NA, Rowv = NA)
+alr6 = heatmap(x = matrix(data = A_lr[6,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_lr 6', Colv = NA, Rowv = NA)
+
+#2.5
+dim(TC)
+svd(TC)
+# [u, v, w] = svds(TC)
+# U is the eigen vector of XX’ and it is where you obtain ”Z” for your case
+# V are the eigen values
+# W is the eigen vector of X’X, 
+par(mfrow=c(1,1))
+eigen_vals = svd(TC)$u
+#columns of u correspond to the principle components
+
+matplot(eigen_vals, main = 'All Eigen Values Separated by TC', ylab = "Eigen values")
+
+plot(eigen_vals[,1], main = "TC1 Eigen Values", pch = 18)
+plot(eigen_vals[,2], main = "TC2 Eigen Values", pch = 18)
+plot(eigen_vals[,3], main = "TC3 Eigen Values", pch = 18)
+plot(eigen_vals[,4], main = "TC4 Eigen Values", pch = 18)
+plot(eigen_vals[,5], main = "TC5 Eigen Values", pch = 18)
+plot(eigen_vals[,6], main = "TC6 Eigen Values", pch = 18)
+
+Z = eigen_vals
+dim(TC)
+#now applying lasso to X_new, and using Z instead of TC
+
+Ao = matrix(0, nsrcs ,1) 
+A_ = matrix (0 , nsrcs ,1)
+A_pcr = matrix(0, nsrcs, x1*x2)
+rho_val = 0.001
+thr = rho_val*N*step
+
+for (k in 1:(x1*x2)) {
+  A_ <- Ao+step*(t(Z) %*% (X_new[,k]-(Z%*%Ao)))
+  A_ <- (1/(1+thr)) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr))
+  for ( i in 1:10)
+  {
+    Ao <- A_
+    A_ <- Ao+step*(t(Z)%*%(X_new[,k]-(Z%*%Ao)))
+    A_ <- (1/(1+thr))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr))
+  }
+  A_pcr[ ,k] <- A_
+  D_pcr = X_new %*% t(A_pcr)
+}
+
+#plots of A_pcr
+heatmap(x = matrix(data = A_pcr[1,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_pcr 1', Colv = NA, Rowv = NA)
+heatmap(x = matrix(data = A_pcr[2,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_pcr 2', Colv = NA, Rowv = NA)
+heatmap(x = matrix(data = A_pcr[3,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_pcr 3', Colv = NA, Rowv = NA)
+heatmap(x = matrix(data = A_pcr[4,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_pcr 4', Colv = NA, Rowv = NA)
+heatmap(x = matrix(data = A_pcr[5,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_pcr 5', Colv = NA, Rowv = NA)
+heatmap(x = matrix(data = A_pcr[6,], nrow = 21, ncol = 21), col = colour, symm = TRUE, 
+               main = 'Heatmap A_pcr 6', Colv = NA, Rowv = NA)
+
+#plots of D_pcr
+par(mfrow=c(3,2))
+
+matplot(D_pcr[,1], type = 'l', xlab = 'Time', main = 'Dpcr 1')
+matplot(D_pcr[,2], type = 'l', xlab = 'Time', main = 'Dpcr 2')
+matplot(D_pcr[,3], type = 'l', xlab = 'Time', main = 'Dpcr 3')
+matplot(D_pcr[,4], type = 'l', xlab = 'Time', main = 'Dpcr 4')
+matplot(D_pcr[,5], type = 'l', xlab = 'Time', main = 'Dpcr 5')
+matplot(D_pcr[,6], type = 'l', xlab = 'Time', main = 'Dpcr 6')
