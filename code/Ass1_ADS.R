@@ -343,44 +343,80 @@ MSEs = matrix(0, 21, 1)
 
 for(p in 1:21) {
   for (k in 1:(x1*x2)) {
-    A_ <- Ao+step*(t(TC) %*% (X[,k]-(TC%*%Ao)))
+    A_ <- Ao+step*(t(TC) %*% (X_new[,k]-(TC%*%Ao)))
     A_ <- (1/(1+thr[p])) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr[p]))
     for ( i in 1:10)
     {
+      snoise = rnorm(2646, mean = 0, sd = i*0.015)
+      SM_noise <- matrix(data = snoise, nrow = 441, ncol = 6)
+      tnoise = rnorm(1440, mean = 0, sd = i*0.25)
+      TC_noise <- matrix(data = tnoise, nrow = 240, ncol = 6)
+      
+      A_loop = (TC + TC_noise)
+      B_loop = (SM + SM_noise)
+      BT_loop = t(B_loop)
+      #get rid of nulls
+      A_loop <- replace(A_loop, is.na(A_loop), 0)
+      BT_loop <- replace(BT_loop, is.na(BT_loop), 0)
+      
+      X2 = A_loop %*% BT_loop
+      X_scaled2 = scale(X2, center = TRUE, scale = TRUE)
+      X_new2 = matrix(X_scaled2, nrow = 240, ncol = 441)
+      
       Ao <- A_
-      A_ <- Ao+step*(t(TC)%*%(X[,k]-(TC%*%Ao)))
+      A_ <- Ao+step*(t(TC)%*%(X_new2[,k]-(TC%*%Ao)))
       A_ <- (1/(1+thr[p]))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr[p]))
     }
     A_lr[ ,k] <- A_
-    D_lr = X_new %*% t(A_lr)
+    D_lr = X_new2 %*% t(A_lr)
   }
-  mse = sum(sum((X_scaled - D_lr %*% A_lr)^2))/(N*V)
+  mse = sum(sum((X_scaled2 - D_lr %*% A_lr)^2))/(N*V)
   MSEs[p,] <- mse
 }
+rho
 MSEs
 plot(y= MSEs, x= rho, main = "Average MSE Per Rho Value", xlab = "Rho Value")
+#minimum is at index 5
+#converges at index 9
+sum(sum((X_scaled2 - D_lr %*% A_lr)^2))/(N*V)
 
 #increases at value = 1
 #minimum value at index 14
-
+rho_val
 #2.4
 Ao = matrix(0, nsrcs ,1) 
 A_ = matrix (0 , nsrcs ,1)
 A_lr = matrix(0, nsrcs, x1*x2)
-rho_val = rho[14]
+rho_val = rho[5]
 thr = rho_val*N*step
-
+rho_val
 for (k in 1:(x1*x2)) {
   A_ <- Ao+step*(t(TC) %*% (X_new[,k]-(TC%*%Ao)))
   A_ <- (1/(1+thr)) * (sign(A_)*pmax(replicate(nsrcs, 0), abs(A_)-thr))
   for ( i in 1:10)
   {
+    snoise = rnorm(2646, mean = 0, sd = 0.015)
+    SM_noise <- matrix(data = snoise, nrow = 441, ncol = 6)
+    tnoise = rnorm(1440, mean = 0, sd = 0.25)
+    TC_noise <- matrix(data = tnoise, nrow = 240, ncol = 6)
+    
+    A_loop = (TC + TC_noise)
+    B_loop = (SM + SM_noise)
+    BT_loop = t(B_loop)
+    #get rid of nulls
+    A_loop <- replace(A_loop, is.na(A_loop), 0)
+    BT_loop <- replace(BT_loop, is.na(BT_loop), 0)
+    
+    X2 = A_loop %*% BT_loop
+    X_scaled2 = scale(X2, center = TRUE, scale = TRUE)
+    X_new2 = matrix(X_scaled2, nrow = 240, ncol = 441)
+    
     Ao <- A_
-    A_ <- Ao+step*(t(TC)%*%(X_new[,k]-(TC%*%Ao)))
+    A_ <- Ao+step*(t(TC)%*%(X_new2[,k]-(TC%*%Ao)))
     A_ <- (1/(1+thr))*(sign(A_)*pmax(replicate(nsrcs ,0), abs(A_)-thr))
   }
   A_lr[ ,k] <- A_
-  D_lr = X_new %*% t(A_lr)
+  D_lr = X_new2 %*% t(A_lr)
 }
 
 #i TC and DRR
