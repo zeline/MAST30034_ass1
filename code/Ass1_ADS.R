@@ -224,7 +224,7 @@ A = (TC + TC_noise)
 B = (SM + SM_noise)
 BT = t(B)
 dim(A)
-
+(TC %*% t(TC_noise)) %*% (SM %*% t(SM_noise))
 colSums(is.na(AA))
 AA[,2]
 #we need to get rid of these null values now, so we will mean impute
@@ -233,7 +233,7 @@ A <- replace(A, is.na(A), 0)
 colSums(is.na(A))
 #now we can do the cross product
 X = A %*% BT
-
+dim(TC)
 matplot(X[,1], type = 'l', xlab = 'Time', main = 'X1')
 
 #gotta use gg plot to plot 100 lines
@@ -308,7 +308,7 @@ plot(D_lsr[,3])
 plot(X[,30])
 plot(x = X_scaled[,30], y = D_lsr[,4])
 plot(x =  D_lsr[,4], y = X_scaled[,30])
-
+X[,30]
 #2.2 Ridge Regression
 lambda = 0.5*V
 
@@ -323,6 +323,9 @@ c_tlsr = cor(D_lsr, TC)
 c_trr = cor(D_rr, TC)
 c(sum(c_trr), sum(c_tlsr))
 #12.36234 > 10.62412
+sink(file = "2_2_ctrr")
+c(sum(c_trr), sum(c_tlsr))
+sink(file = NULL)
 
 #now let lambda = 1000
 lambda2 = 1000
@@ -330,6 +333,8 @@ A_rr2 = solve(t(TC)%*%TC + lambda2 *diag(6)) %*% t(TC) %*% X_scaled
 plot(A_rr2[1,])
 plot(A_lsr[1,])
 
+plot(A_rr[,1])
+plot(A_lsr[,1])
 #2.3 LR
 rho = seq(0, 1, by = 0.05)
 
@@ -373,13 +378,13 @@ for(p in 1:21) {
   mse = sum(sum((X_scaled2 - D_lr %*% A_lr)^2))/(N*V)
   MSEs[p,] <- mse
 }
-rho
+rho[9]
 MSEs
 plot(y= MSEs, x= rho, main = "Average MSE Per Rho Value", xlab = "Rho Value")
 #minimum is at index 5
 #converges at index 9
 sum(sum((X_scaled2 - D_lr %*% A_lr)^2))/(N*V)
-
+var(SM[,1])
 #increases at value = 1
 #minimum value at index 14
 rho_val
@@ -418,7 +423,7 @@ for (k in 1:(x1*x2)) {
   A_lr[ ,k] <- A_
   D_lr = X_new2 %*% t(A_lr)
 }
-
+sink(file = "2_4_code")
 #i TC and DRR
 C_trr = cor(TC, D_rr)
 #i SM and Arr
@@ -430,6 +435,7 @@ C_slr = cor(SM, t(A_lr))
 
 c(sum(C_tlr), sum(C_trr)) 
 c(sum(C_slr), sum(C_srr)) 
+sink(file = NULL)
 
 #C_tlr > C_trr but it isnt
 
@@ -505,7 +511,8 @@ plot(eigen_vals[,6], main = "TC6 Eigen Values", pch = 18)
 Z = eigen_vals
 dim(TC)
 #now applying lasso to X_new, and using Z instead of TC
-
+dim(Z)
+dim(TC)
 Ao = matrix(0, nsrcs ,1) 
 A_ = matrix (0 , nsrcs ,1)
 A_pcr = matrix(0, nsrcs, x1*x2)
@@ -548,3 +555,13 @@ matplot(D_pcr[,3], type = 'l', xlab = 'Time', main = 'Dpcr 3')
 matplot(D_pcr[,4], type = 'l', xlab = 'Time', main = 'Dpcr 4')
 matplot(D_pcr[,5], type = 'l', xlab = 'Time', main = 'Dpcr 5')
 matplot(D_pcr[,6], type = 'l', xlab = 'Time', main = 'Dpcr 6')
+
+#plots of Z
+par(mfrow=c(3,2))
+
+matplot(Z[,1], type = 'l', xlab = 'Time', main = 'Z 1')
+matplot(Z[,2], type = 'l', xlab = 'Time', main = 'Z 2')
+matplot(Z[,3], type = 'l', xlab = 'Time', main = 'Z 3')
+matplot(Z[,4], type = 'l', xlab = 'Time', main = 'Z 4')
+matplot(Z[,5], type = 'l', xlab = 'Time', main = 'Z 5')
+matplot(Z[,6], type = 'l', xlab = 'Time', main = 'Z 6')
